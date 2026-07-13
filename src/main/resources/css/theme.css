@@ -1,0 +1,262 @@
+/* ==========================================================
+   Telemetry Overlay Theme
+   ========================================================== */
+
+/* ==========================================================
+   Root & Theme Variables
+   ========================================================== */
+
+.root {
+
+    -fx-font-family: "Noto Sans";
+
+    /* Application Colors */
+
+    -app-background: #f3f4f6;
+    -panel-background: #ffffff;
+
+    -toolbar-background: #34495e;
+    -toolbar-hover: #45627f;
+
+    -border-color: #d8d8d8;
+
+    -primary-color: #2e86de;
+
+    -text-color: #222222;
+    -secondary-text: #666666;
+
+    -fx-background-color: -app-background;
+}
+
+/* ==========================================================
+   Menu Bar
+   ========================================================== */
+
+.menu-bar {
+
+    -fx-background-color: -toolbar-background;
+
+    -fx-padding: 2 4 2 4;
+
+}
+
+.menu-bar .label {
+
+    -fx-text-fill: white;
+
+}
+
+.menu:hover,
+.menu:showing {
+
+    -fx-background-color: -toolbar-hover;
+
+}
+
+.context-menu {
+
+    -fx-background-color: white;
+
+    -fx-border-color: -border-color;
+
+}
+
+/* ==========================================================
+   Tool Bar
+   ========================================================== */
+
+.tool-bar {
+
+    -fx-background-color: -toolbar-background;
+
+    -fx-padding: 8;
+
+    -fx-spacing: 8;
+
+}
+
+/* ==========================================================
+   Buttons
+   ========================================================== */
+
+.button {
+
+    -fx-background-color: white;
+
+    -fx-text-fill: -text-color;
+
+    -fx-background-radius: 4;
+
+    -fx-border-radius: 4;
+
+    -fx-border-color: -border-color;
+
+    -fx-padding: 6 12;
+
+    -fx-focus-color: -primary-color;
+
+    -fx-faint-focus-color: transparent;
+
+}
+
+.button:hover {
+
+    -fx-background-color: #edf4fb;
+
+}
+
+.button:pressed {
+
+    -fx-background-color: #d6e7fa;
+
+}
+
+/* ==========================================================
+   Labels
+   ========================================================== */
+
+.label {
+
+    -fx-text-fill: -text-color;
+
+}
+
+/* ==========================================================
+   Text Fields
+   ========================================================== */
+
+.text-field {
+
+    -fx-background-color: white;
+
+    -fx-text-fill: -text-color;
+
+    -fx-padding: 6 8;
+
+    -fx-background-radius: 4;
+
+    -fx-border-radius: 4;
+
+    -fx-border-color: -border-color;
+
+    -fx-focus-color: -primary-color;
+
+    -fx-faint-focus-color: transparent;
+
+}
+
+/* ==========================================================
+   SplitPane
+   ========================================================== */
+
+.split-pane {
+
+    -fx-background-color: transparent;
+
+}
+
+.split-pane-divider {
+
+    -fx-background-color: -border-color;
+
+}
+
+/* ==========================================================
+   ScrollPane
+   ========================================================== */
+
+.scroll-pane {
+
+    -fx-background-color: transparent;
+
+}
+
+.scroll-pane > .viewport {
+
+    -fx-background-color: -panel-background;
+
+}
+
+/* ==========================================================
+   Generic Panels
+   ========================================================== */
+
+.panel {
+
+    -fx-background-color: -panel-background;
+
+    -fx-border-color: -border-color;
+
+}
+
+/* ==========================================================
+   Telemetry Values
+   ========================================================== */
+
+.telemetry-value {
+
+    -fx-font-family: "Noto Sans Mono";
+
+}
+
+/* ==========================================================
+   Status Bar
+   ========================================================== */
+
+.status-bar {
+
+    -fx-background-color: white;
+
+    -fx-border-color: -border-color;
+
+    -fx-padding: 5 10;
+
+}
+
+/* ==========================================================
+   Video Preview
+   ========================================================== */
+
+.video-preview {
+
+    -fx-background-color: black;
+
+    -fx-border-color: -border-color;
+
+}
+
+/* ==========================================================
+   Inspector Panel
+   ========================================================== */
+
+.inspector-panel {
+
+    -fx-background-color: white;
+
+    -fx-border-color: -border-color;
+
+}
+
+/* ==========================================================
+   Timeline
+   ========================================================== */
+
+.timeline-panel {
+
+    -fx-background-color: white;
+
+    -fx-border-color: -border-color;
+
+}
+
+/* ==========================================================
+   Widget Palette
+   ========================================================== */
+
+.widget-panel {
+
+    -fx-background-color: white;
+
+    -fx-border-color: -border-color;
+
+}
