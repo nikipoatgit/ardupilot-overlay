@@ -2,13 +2,207 @@
 
 <?import java.lang.*?>
 <?import java.util.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Rectangle?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.nikipo.ardupilotoverlay.ui.controllers.ProjectConfigController"
-            prefHeight="400.0" prefWidth="600.0">
+            prefHeight="960.0" prefWidth="1920.0"
+            stylesheets="@../css/style.css">
+
+    <children>
+
+        <SplitPane fx:id="mainSplitPane" dividerPositions="0.72"
+                   AnchorPane.topAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+
+            <items>
+
+                <SplitPane fx:id="editorSplitPane" orientation="VERTICAL" dividerPositions="0.78">
+                    <items>
+
+                        <!-- ===== VIDEO PREVIEW AREA ===== -->
+                        <StackPane fx:id="previewStack" style="-fx-background-color: #1c1c1c;">
+                            <children>
+                                <ImageView fx:id="videoImageView" preserveRatio="true" pickOnBounds="true" />
+                                <Label fx:id="previewMessageLabel"
+                                       text="No video selected"
+                                       style="-fx-text-fill: #d6d6d6; -fx-font-size: 16px;" />
+                            </children>
+                        </StackPane>
+
+                        <!-- ===== TIMELINE AREA ===== -->
+                        <VBox fx:id="timelineBox" spacing="4" style="-fx-background-color: white;">
+                            <padding>
+                                <Insets top="8" right="12" bottom="8" left="12" />
+                            </padding>
+                            <children>
+
+                                <!-- Ruler / scrub track with time labels -->
+                                <HBox fx:id="rulerBox"
+                                      spacing="0"
+                                      alignment="CENTER_LEFT">
+
+                                    <children>
+
+                                        <Label fx:id="startTimeLabel"
+                                               text="00:00"/>
+
+                                        <Pane HBox.hgrow="ALWAYS"/>
+
+                                        <Label fx:id="endTimeLabel"
+                                               text="35:32"/>
+
+                                    </children>
+
+                                </HBox>
+
+                                <!-- Scrub bar -->
+                                <StackPane alignment="TOP_LEFT">
+                                    <children>
+                                        <Slider fx:id="scrubSlider"
+                                                min="0"
+                                                max="100"
+                                                value="0"
+                                                blockIncrement="1"
+                                                styleClass="timeline-slider"/>
+
+                                        <Label fx:id="hoverTimeLabel"
+                                               visible="false"
+                                               mouseTransparent="true"
+                                               text="00:00"
+                                               style="-fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-padding: 2 6 2 6; -fx-background-radius: 4; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                                    </children>
+                                </StackPane>
+
+                                <!-- In/Out points bar -->
+                                <StackPane fx:id="inOutStack" prefHeight="40">
+                                    <children>
+                                        <Rectangle fx:id="inOutTrack" height="18" fill="#dddddd" />
+                                        <Label fx:id="inOutLabel" text="Project In and Out points" />
+                                    </children>
+                                </StackPane>
+
+                                <!-- Transport controls row -->
+                                <HBox fx:id="transportBox" spacing="6" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Button fx:id="playPauseButton" text="Play" />
+                                        <Button fx:id="setStartButton" text="Set Start" />
+                                        <Button fx:id="setEndButton" text="Set End" />
+                                        <Button fx:id="stepBackButton" text="-1f" />
+                                        <Button fx:id="stepForwardButton" text="+1f" />
+                                        <Pane fx:id="transportSpacer" HBox.hgrow="ALWAYS" />
+                                        <Button fx:id="muteButton" text="Mute" />
+                                        <Button fx:id="prevMarkerButton" text="|&lt;" />
+                                        <Button fx:id="nextMarkerButton" text="&gt;|" />
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+
+                    </items>
+                </SplitPane>
+
+                <ScrollPane fx:id="propertiesScrollPane" fitToWidth="true">
+                    <content>
+                        <VBox fx:id="propertiesBox" spacing="16">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16" />
+                            </padding>
+                            <children>
+
+                                <!-- ===== PROJECT NAME SECTION ===== -->
+                                <VBox spacing="8">
+                                    <children>
+                                        <Label text="Project name" style="-fx-font-weight: bold;" />
+                                        <TextField fx:id="projectNameField" promptText="Project name" />
+                                    </children>
+                                </VBox>
+
+                                <Separator />
+
+                                <!-- ===== VIDEO SECTION ===== -->
+                                <VBox spacing="8">
+                                    <children>
+                                        <Label text="Video" style="-fx-font-weight: bold;" />
+
+                                        <GridPane hgap="16" vgap="4">
+                                            <columnConstraints>
+                                                <ColumnConstraints percentWidth="50" />
+                                                <ColumnConstraints percentWidth="50" />
+                                            </columnConstraints>
+                                            <children>
+                                                <Label text="Rotation" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                                                <Label text="Opacity" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                                                <Slider fx:id="videoRotationSlider" min="0" max="360" value="0"
+                                                        GridPane.rowIndex="1" GridPane.columnIndex="0" />
+
+                                                <Slider fx:id="videoOpacitySlider" min="0" max="100" value="100"
+                                                        GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+
+                                <Separator />
+
+                                <!-- ===== COLOR GRADING SECTION ===== -->
+                                <VBox spacing="8">
+                                    <children>
+                                        <Label text="Color grading" style="-fx-font-weight: bold;" />
+
+                                        <GridPane hgap="16" vgap="4">
+                                            <columnConstraints>
+                                                <ColumnConstraints percentWidth="50" />
+                                                <ColumnConstraints percentWidth="50" />
+                                            </columnConstraints>
+                                            <children>
+                                                <Label text="Brightness" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                                                <Label text="Contrast" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                                                <Slider fx:id="brightnessSlider" min="-50" max="50" value="0"
+                                                        GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                                                <Slider fx:id="contrastSlider" min="50" max="300" value="100"
+                                                        GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+                                                <Label text="Saturation" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                                                <Label text="Temperature" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                                                <Slider fx:id="saturationSlider" min="0" max="300" value="100"
+                                                        GridPane.rowIndex="3" GridPane.columnIndex="0" />
+                                                <Slider fx:id="temperatureSlider" min="-200" max="200" value="0"
+                                                        GridPane.rowIndex="3" GridPane.columnIndex="1" />
+
+                                                <Label text="Tint" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+                                                <Slider fx:id="tintSlider" min="-200" max="200" value="0"
+                                                        GridPane.rowIndex="5" GridPane.columnIndex="0" />
+
+                                                <Button fx:id="resetGradingButton" text="Reset"
+                                                        GridPane.rowIndex="5" GridPane.columnIndex="1"
+                                                        maxWidth="Infinity" />
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+
+                            </children>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+
+            </items>
+        </SplitPane>
+
+        <Button fx:id="nextButton"
+                text="Next"
+                prefWidth="112"
+                prefHeight="40"
+                AnchorPane.rightAnchor="24.0"
+                AnchorPane.bottomAnchor="24.0" />
+
+    </children>
 
 </AnchorPane>

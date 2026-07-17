@@ -18,7 +18,8 @@ javafx {
 
     modules = listOf(
         "javafx.controls",
-        "javafx.fxml"
+        "javafx.fxml",
+        "javafx.swing"
     )
 }
 dependencies {
@@ -29,6 +30,7 @@ dependencies {
 
     implementation("org.openjfx:javafx-controls:21.0.8")
     implementation("org.openjfx:javafx-fxml:21.0.8")
+    implementation("org.openjfx:javafx-swing:21.0.8")
 
     // ============================
     // Video (FFmpeg)
@@ -40,8 +42,8 @@ dependencies {
     // JSON
     // ============================
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
 
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
     // ============================
     // CSV
     // ============================

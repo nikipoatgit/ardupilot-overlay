@@ -1,5 +1,6 @@
 package com.nikipo.ardupilotoverlay.ui;
 
+import com.nikipo.ardupilotoverlay.ui.controllers.MainLayoutController;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -23,8 +24,18 @@ public class MainWindow {
 
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
 
+        FXMLLoader loader = new FXMLLoader(
+                Objects.requireNonNull(
+                        getClass().getResource("/fxml/MainLayout.fxml")
+                )
+        );
+
+        Parent root = loader.load();
+
+        MainLayoutController controller = loader.getController();
+
         scene = new Scene(
-                new Pane(),
+                root,
                 bounds.getWidth() * 0.8,
                 bounds.getHeight() * 0.8
         );
@@ -35,7 +46,7 @@ public class MainWindow {
                 ).toExternalForm()
         );
 
-        navigator = new Navigator(scene);
+        navigator = new Navigator(controller);
 
         navigator.showHome();
 

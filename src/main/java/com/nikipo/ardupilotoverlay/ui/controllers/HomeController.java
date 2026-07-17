@@ -1,10 +1,11 @@
 package com.nikipo.ardupilotoverlay.ui.controllers;
 
+import com.nikipo.ardupilotoverlay.ui.Navigable;
 import com.nikipo.ardupilotoverlay.ui.Navigator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 
-public class HomeController implements Navigable{
+public class HomeController implements Navigable {
     private Navigator navigator;
 
     @Override
@@ -13,7 +14,7 @@ public class HomeController implements Navigable{
     }
     @FXML
     private void onNewProject(ActionEvent event) {
-        navigator.showVideo();
+        navigator.showMediaSelector();
     }
 
     @FXML
