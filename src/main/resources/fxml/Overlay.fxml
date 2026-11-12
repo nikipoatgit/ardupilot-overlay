@@ -1,30 +1,308 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import com.nikipo.ardupilotoverlay.ui.VideoStage?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.nikipo.ardupilotoverlay.ui.controllers.OverlayController"
-      alignment="CENTER"
-      spacing="16">
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.nikipo.ardupilotoverlay.ui.controllers.OverlayController">
 
-    <padding>
-        <Insets top="40" right="40" bottom="40" left="40"/>
-    </padding>
 
-    <Label text="Overlay Editor"
-           style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+    <!-- ===================== LEFT: VIDEO + TIMELINE + GAUGE PICKER ===================== -->
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="4" right="12" bottom="12" left="24"/>
+            </padding>
 
-    <Label text="Overlay editor is under development."
-           style="-fx-font-size: 16px;"/>
+            <!-- Video / overlay preview: this strip stays dark, same as
+                 ProjectConfig's previewStack, since it represents the video frame. -->
+            <VideoStage fx:id="videoStage"
+                       style="-fx-background-color: black; -fx-background-radius: 4;"
+                       VBox.vgrow="ALWAYS">
+            </VideoStage>
 
-    <Label text="Ready for testing."
-           style="-fx-text-fill: gray;"/>
+            <!-- Timeline / scrubber -->
+            <VBox minHeight="140" prefHeight="160" maxHeight="160" spacing="4">
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Button fx:id="playButton" text="Play" onAction="#onPlayPause"/>
+                    <Button fx:id="muteButton" text="Mute" onAction="#onMuteToggle"/>
+                    <Button fx:id="markerButton" text="Marker" onAction="#onAddMarker"/>
 
-    <Button text="Continue"
-            onAction="#onContinue"/>
+                    <Label fx:id="currentTimeLabel" text="00:00"/>
 
-</VBox>
+                    <Slider fx:id="timelineSlider" HBox.hgrow="ALWAYS"
+                            min="0" max="100" value="0"/>
+
+                    <Label fx:id="totalTimeLabel" text="22:38"/>
+
+                    <Button fx:id="expandTimelineButton" text="Expand" onAction="#onExpandTimeline"/>
+                </HBox>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Gauge tools sidebar + gauge type picker -->
+            <HBox spacing="16" VBox.vgrow="NEVER">
+
+                <!-- Left mini sidebar: gauge management actions -->
+                <VBox spacing="6" prefWidth="150">
+                    <Button fx:id="addGaugeButton" text="+ Add Gauge" onAction="#onAddGauge"
+                            maxWidth="Infinity" style="-fx-alignment: CENTER_LEFT;"/>
+                    <Button fx:id="editGaugesButton" text="Edit Gauges" onAction="#onEditGauges"
+                            maxWidth="Infinity" style="-fx-alignment: CENTER_LEFT;"/>
+                    <Button fx:id="syncTelemetryButton" text="Sync Telemetry" onAction="#onSyncTelemetry"
+                            maxWidth="Infinity" style="-fx-alignment: CENTER_LEFT;"/>
+                    <Button fx:id="trimGaugeButton" text="Trim Gauge" onAction="#onTrimGauge"
+                            maxWidth="Infinity" style="-fx-alignment: CENTER_LEFT;"/>
+                    <Button fx:id="patternsButton" text="Patterns" onAction="#onPatterns"
+                            maxWidth="Infinity" style="-fx-alignment: CENTER_LEFT;"/>
+                </VBox>
+
+                <!-- Gauge type picker -->
+                <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER"
+                            HBox.hgrow="ALWAYS">
+                    <FlowPane fx:id="gaugeTypeFlowPane" hgap="8" vgap="8" prefWrapLength="2000">
+                        <Button text="Bank" onAction="#onSelectGaugeType"/>
+                        <Button text="Attitude Indicator" onAction="#onSelectGaugeType"/>
+                        <Button text="Heading Indicator" onAction="#onSelectGaugeType"/>
+                        <Button fx:id="speedGaugeButton" text="Speed" onAction="#onSelectGaugeType"
+                                style="-fx-border-color: #2f80ed; -fx-border-radius: 3; -fx-text-fill: #2f80ed;"/>
+                        <Button text="Vertical Speed" onAction="#onSelectGaugeType"/>
+                        <Button text="Alt" onAction="#onSelectGaugeType"/>
+                        <Button text="Heading number" onAction="#onSelectGaugeType"/>
+                        <Button text="Acceleration (GPS)" onAction="#onSelectGaugeType"/>
+                    </FlowPane>
+                </ScrollPane>
+            </HBox>
+        </VBox>
+    </center>
+
+    <!-- ===================== RIGHT: PROPERTY PANEL ===================== -->
+    <right>
+        <ScrollPane fitToWidth="true" minWidth="320" prefWidth="380" maxWidth="520">
+            <VBox fx:id="propertyPanel"
+                  prefWidth="300"
+                  spacing="12">
+
+                <padding>
+                    <Insets top="16" right="16" bottom="24" left="16"/>
+                </padding>
+
+                <!-- Panel header: widget name + quick actions -->
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <VBox spacing="0" HBox.hgrow="ALWAYS">
+                        <Label fx:id="propertyPanelTitle" text="Speed"
+                               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                        <Label fx:id="propertyPanelSubtitle" text="(Custom Tape)"
+                               style="-fx-font-size: 11px;"/>
+                    </VBox>
+                    <Button fx:id="toggleVisibleButton" text="Show" onAction="#onToggleVisible"/>
+                    <Button fx:id="toggleLockButton" text="Lock" onAction="#onToggleLock"/>
+                    <Button fx:id="duplicateWidgetButton" text="Copy" onAction="#onDuplicateWidget"/>
+                    <Button fx:id="colorTagButton" text="Tag" onAction="#onColorTag"/>
+                    <Button fx:id="deleteWidgetButton" text="Delete" onAction="#onDeleteWidget"
+                            style="-fx-text-fill: #d64545;"/>
+                </HBox>
+
+                <Label fx:id="propertyPanelHint"
+                       text="Select a widget to edit it."
+                       wrapText="true"
+                       style="-fx-text-fill: gray;"/>
+
+                <Separator/>
+
+                <!-- Appearance -->
+                <Label text="Appearance" style="-fx-font-weight: bold;"/>
+
+                <VBox spacing="4">
+                    <Label text="Size" style="-fx-font-size: 12px;"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Slider fx:id="sizeSlider" min="0.1" max="10.0" value="5.0" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="sizeValueLabel" text="5.0"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Color swatches: Text / Ticks / Gauge / Labels / Back -->
+                <VBox spacing="4">
+                    <Label text="Colors" style="-fx-font-size: 12px;"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <VBox alignment="CENTER" spacing="2">
+                            <ColorPicker fx:id="textColorPicker"/>
+                            <Label text="Text" style="-fx-font-size: 10px;"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="2">
+                            <ColorPicker fx:id="ticksColorPicker"/>
+                            <Label text="Ticks" style="-fx-font-size: 10px;"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="2">
+                            <ColorPicker fx:id="gaugeColorPicker"/>
+                            <Label text="Gauge" style="-fx-font-size: 10px;"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="2">
+                            <ColorPicker fx:id="labelsColorPicker"/>
+                            <Label text="Labels" style="-fx-font-size: 10px;"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="2">
+                            <ColorPicker fx:id="backColorPicker"/>
+                            <Label text="Back" style="-fx-font-size: 10px;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Text / Labels / Ticks / Shape tabs -->
+                <TabPane fx:id="propertyTabPane" tabClosingPolicy="UNAVAILABLE">
+                    <Tab text="Text">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="4" bottom="4" left="4"/>
+                            </padding>
+
+                            <VBox spacing="4">
+                                <Label text="Values" style="-fx-font-size: 12px;"/>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Slider fx:id="textValuesSlider" min="3" max="21" value="9" HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="textValuesLabel" text="9"/>
+                                </HBox>
+                            </VBox>
+
+                            <VBox spacing="4">
+                                <Label text="Decimals" style="-fx-font-size: 12px;"/>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Slider fx:id="decimalsSlider" min="0" max="3" value="0" HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="decimalsLabel" text="0"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </Tab>
+
+                    <Tab text="Labels">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="4" bottom="4" left="4"/>
+                            </padding>
+                            <Label text="Label options go here." style="-fx-text-fill: gray;"/>
+                        </VBox>
+                    </Tab>
+
+                    <Tab text="Ticks">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="4" bottom="4" left="4"/>
+                            </padding>
+                            <Label text="Tick options go here." style="-fx-text-fill: gray;"/>
+                        </VBox>
+                    </Tab>
+
+                    <Tab text="Shape">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="4" bottom="4" left="4"/>
+                            </padding>
+                            <Label text="Shape options go here." style="-fx-text-fill: gray;"/>
+                        </VBox>
+                    </Tab>
+                </TabPane>
+
+                <Separator/>
+
+                <!-- Values -->
+                <Label text="Values" style="-fx-font-weight: bold;"/>
+
+                <VBox spacing="4">
+                    <Label text="Units" style="-fx-font-size: 12px;"/>
+                    <ComboBox fx:id="unitsComboBox" maxWidth="Infinity"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="Max" style="-fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+                        <CheckBox fx:id="maxAutoCheckBox" text="Auto" selected="true"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Slider fx:id="maxSlider" min="0" max="500" value="100" disable="true" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="maxValueLabel" text="100 kn"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="4">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="Min" style="-fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+                        <CheckBox fx:id="minAutoCheckBox" text="Auto" selected="false"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Slider fx:id="minSlider" min="0" max="500" value="0" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="minValueLabel" text="0 kn"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Offset" style="-fx-font-size: 12px;"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Slider fx:id="offsetSlider" min="-100" max="100" value="0" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="offsetValueLabel" text="0"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Gap" style="-fx-font-size: 12px;"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Slider fx:id="gapSlider" min="0" max="50" value="10" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="gapValueLabel" text="10"/>
+                    </HBox>
+                </VBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Invert" style="-fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+                    <ToggleButton fx:id="invertToggle" text=""/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Wrap" style="-fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+                    <ToggleButton fx:id="wrapToggle" text=""/>
+                </HBox>
+
+                <VBox spacing="4">
+                    <Label text="Smoothing" style="-fx-font-size: 12px;"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Slider fx:id="smoothingSlider" min="0" max="200" value="0" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="smoothingValueLabel" text="0"/>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </right>
+
+    <!-- ===================== FOOTER ===================== -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" spacing="12">
+            <padding>
+                <Insets top="12" right="24" bottom="24" left="24"/>
+            </padding>
+
+            <Button text="Continue"
+                    prefWidth="140"
+                    prefHeight="40"
+                    onAction="#onContinue"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

@@ -3,6 +3,7 @@ package com.nikipo.ardupilotoverlay.telemetry;
 import com.nikipo.ardupilotoverlay.telemetry.dataType.TimedValue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DiscreteTimeSeries<T> {
@@ -17,6 +18,11 @@ public class DiscreteTimeSeries<T> {
 
     public int size() {
         return samples.size();
+    }
+
+
+    public List<TimedValue<T>> getBuffer() {
+        return Collections.unmodifiableList(samples);
     }
 
     public T sample(long timeUs) {

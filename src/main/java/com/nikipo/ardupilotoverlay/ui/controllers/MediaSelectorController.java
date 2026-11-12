@@ -3,7 +3,7 @@ package com.nikipo.ardupilotoverlay.ui.controllers;
 import com.nikipo.ardupilotoverlay.logging.AppLogger;
 import com.nikipo.ardupilotoverlay.project.ProjectManager;
 import com.nikipo.ardupilotoverlay.ui.Navigable;
-import com.nikipo.ardupilotoverlay.ui.Navigator;
+import com.nikipo.ardupilotoverlay.ui.UIOrchestrator;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.stage.Stage;
@@ -16,14 +16,16 @@ import java.util.List;
 import static com.nikipo.ardupilotoverlay.util.FileFilters.VIDEO;
 import static com.nikipo.ardupilotoverlay.util.FileUtility.FileValidator;
 import static com.nikipo.ardupilotoverlay.util.FileUtility.chooseFile;
+import static com.nikipo.ardupilotoverlay.util.FileUtility.getLastVideoDirectory;
+import static com.nikipo.ardupilotoverlay.util.FileUtility.rememberVideoDirectory;
 
 public class MediaSelectorController implements Navigable {
-    private Navigator navigator;
+    private UIOrchestrator orchestrator;
     private static final Logger logger = AppLogger.getLogger(MediaSelectorController.class);
 
     @Override
-    public void setNavigator(Navigator navigator) {
-        this.navigator = navigator;
+    public void setOrchestrator(UIOrchestrator orchestrator) {
+        this.orchestrator = orchestrator;
     }
 
     public void onSelectVideo(ActionEvent actionEvent) {
@@ -34,13 +36,20 @@ public class MediaSelectorController implements Navigable {
         Path video = chooseFile(
                 stage,
                 "Select Video",
-                List.of(VIDEO)
+                List.of(VIDEO),
+                getLastVideoDirectory()
         );
+        if (video == null) {
+            return;
+        }
+
+        rememberVideoDirectory(video);
+
         try {
             if (FileValidator(video)){
                 ProjectManager  projectManager = ProjectManager.getInstance();
                 projectManager.newProject(video);
-                navigator.showProjectConfig();
+                orchestrator.showProjectConfig();
             }
         } catch (IOException e) {
             logger.error("Failed at FileValidator with ", e);
@@ -52,6 +61,6 @@ public class MediaSelectorController implements Navigable {
     public void onSkip(ActionEvent actionEvent) {
         ProjectManager  projectManager = ProjectManager.getInstance();
         projectManager.newProject(null);
-        navigator.showProjectConfig();
+        orchestrator.showProjectConfig();
     }
 }

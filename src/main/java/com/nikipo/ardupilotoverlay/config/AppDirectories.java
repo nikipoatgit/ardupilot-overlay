@@ -11,6 +11,8 @@ public final class AppDirectories {
 
     public static final String APP_NAME = "ArdupilotOverlay";
     public static final String APP_AUTHOR = "Nikipo";
+    public static final String APP_VERSION = "1.0.0";
+
 
     private final Path rootDirectory;
     private final Path configDirectory;
@@ -24,7 +26,7 @@ public final class AppDirectories {
         AppDirs appDirs = AppDirsFactory.getInstance();
 
         rootDirectory = Path.of(
-                appDirs.getUserConfigDir(APP_NAME, null, APP_AUTHOR)
+                appDirs.getUserConfigDir(APP_NAME, APP_VERSION, APP_AUTHOR)
         );
 
         configDirectory = rootDirectory.resolve("config");

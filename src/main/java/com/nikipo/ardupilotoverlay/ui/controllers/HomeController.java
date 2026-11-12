@@ -1,20 +1,20 @@
 package com.nikipo.ardupilotoverlay.ui.controllers;
 
 import com.nikipo.ardupilotoverlay.ui.Navigable;
-import com.nikipo.ardupilotoverlay.ui.Navigator;
+import com.nikipo.ardupilotoverlay.ui.UIOrchestrator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 
 public class HomeController implements Navigable {
-    private Navigator navigator;
+    private UIOrchestrator orchestrator;
 
     @Override
-    public void setNavigator(Navigator navigator) {
-        this.navigator = navigator;
+    public void setOrchestrator(UIOrchestrator orchestrator) {
+        this.orchestrator = orchestrator;
     }
     @FXML
     private void onNewProject(ActionEvent event) {
-        navigator.showMediaSelector();
+        orchestrator.showMediaSelector();
     }
 
     @FXML

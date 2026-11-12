@@ -96,5 +96,5 @@ tasks.test {
 }
 
 application {
-    mainClass.set("com.nikipo.ardupilotoverlay.App")
+    mainClass.set("com.nikipo.ardupilotoverlay.Main")
 }

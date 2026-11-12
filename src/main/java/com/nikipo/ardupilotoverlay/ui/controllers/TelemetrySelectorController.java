@@ -7,7 +7,7 @@ import com.nikipo.ardupilotoverlay.telemetry.Telemetry;
 import com.nikipo.ardupilotoverlay.telemetry.parser.Parser;
 import com.nikipo.ardupilotoverlay.telemetry.parser.ParserException;
 import com.nikipo.ardupilotoverlay.ui.Navigable;
-import com.nikipo.ardupilotoverlay.ui.Navigator;
+import com.nikipo.ardupilotoverlay.ui.UIOrchestrator;
 import com.nikipo.ardupilotoverlay.ui.WizardStep;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -26,13 +26,15 @@ import java.util.List;
 import static com.nikipo.ardupilotoverlay.util.FileFilters.TELEMETRY;
 import static com.nikipo.ardupilotoverlay.util.FileUtility.FileValidator;
 import static com.nikipo.ardupilotoverlay.util.FileUtility.chooseFile;
+import static com.nikipo.ardupilotoverlay.util.FileUtility.getLastTelemetryDirectory;
+import static com.nikipo.ardupilotoverlay.util.FileUtility.rememberTelemetryDirectory;
 
 public class TelemetrySelectorController implements Navigable {
     private static final Logger logger = AppLogger.getLogger(TelemetrySelectorController.class);
 
     @Override
-    public void setNavigator(Navigator navigator) {
-        this.navigator = navigator;
+    public void setOrchestrator(UIOrchestrator orchestrator) {
+        this.orchestrator = orchestrator;
     }
 
     @FXML
@@ -47,7 +49,7 @@ public class TelemetrySelectorController implements Navigable {
     @FXML
     private Label statusLabel;
 
-    private Navigator navigator;
+    private UIOrchestrator orchestrator;
 
     @FXML
     private void initialize() {
@@ -71,22 +73,29 @@ public class TelemetrySelectorController implements Navigable {
         Path telemetryPath = chooseFile(
                 stage,
                 "Select Telemetry File",
-                List.of(TELEMETRY)
+                List.of(TELEMETRY),
+                getLastTelemetryDirectory()
         );
+        if (telemetryPath == null) {
+            return;
+        }
+
+        rememberTelemetryDirectory(telemetryPath);
 
         try {
             showLoading();
+            // file validator trows error
             if (FileValidator(telemetryPath)) {
                 project.setTelemetryFile(telemetryPath);
                 Parser parser = new Parser(telemetryPath);
                 Telemetry telemetry = parser.getTelemetry();
                 project.setTelemetry(telemetry);
+//                ProjectManager.getInstance().debugDumpTelemetry();
 
                 project.setCurrentStep(WizardStep.TELEMETRY);
 
-                navigator.showOverlay();
+                orchestrator.showOverlay();
             }
-
         } catch (IOException e) {
             logger.error("Failed at FileValidator with ", e);
             showError("Failed at FileValidator with "+e.getMessage());

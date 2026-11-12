@@ -8,22 +8,80 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 public final class FileUtility {
+    private static final String LAST_VIDEO_DIRECTORY = "lastVideoDirectory";
+    private static final String LAST_TELEMETRY_DIRECTORY = "lastTelemetryDirectory";
+    private static final Preferences PREFERENCES = Preferences.userNodeForPackage(FileUtility.class);
 
     public static Path chooseFile(
             Window owner,
             String title,
             List<FileChooser.ExtensionFilter> filters
     ) {
+        return chooseFile(owner, title, filters, null);
+    }
+
+    public static Path chooseFile(
+            Window owner,
+            String title,
+            List<FileChooser.ExtensionFilter> filters,
+            Path initialDirectory
+    ) {
         FileChooser chooser = new FileChooser();
 
         chooser.setTitle(title);
         chooser.getExtensionFilters().addAll(filters);
+        if (initialDirectory != null && Files.isDirectory(initialDirectory)) {
+            chooser.setInitialDirectory(initialDirectory.toFile());
+        }
 
         File file = chooser.showOpenDialog(owner);
 
         return file == null ? null : file.toPath();
+    }
+
+    public static Path getLastVideoDirectory() {
+        String directory = PREFERENCES.get(LAST_VIDEO_DIRECTORY, "");
+        if (directory.isBlank()) {
+            return null;
+        }
+
+        Path path = Path.of(directory);
+        return Files.isDirectory(path) ? path : null;
+    }
+
+    public static void rememberVideoDirectory(Path videoFile) {
+        if (videoFile == null || videoFile.getParent() == null) {
+            return;
+        }
+
+        Path directory = videoFile.toAbsolutePath().normalize().getParent();
+        if (Files.isDirectory(directory)) {
+            PREFERENCES.put(LAST_VIDEO_DIRECTORY, directory.toString());
+        }
+    }
+
+    public static Path getLastTelemetryDirectory() {
+        String directory = PREFERENCES.get(LAST_TELEMETRY_DIRECTORY, "");
+        if (directory.isBlank()) {
+            return null;
+        }
+
+        Path path = Path.of(directory);
+        return Files.isDirectory(path) ? path : null;
+    }
+
+    public static void rememberTelemetryDirectory(Path telemetryFile) {
+        if (telemetryFile == null || telemetryFile.getParent() == null) {
+            return;
+        }
+
+        Path directory = telemetryFile.toAbsolutePath().normalize().getParent();
+        if (Files.isDirectory(directory)) {
+            PREFERENCES.put(LAST_TELEMETRY_DIRECTORY, directory.toString());
+        }
     }
 
     public static boolean FileValidator(Path path) throws IOException {

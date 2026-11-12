@@ -8,8 +8,7 @@ import com.nikipo.ardupilotoverlay.telemetry.dataType.TelemetryCapability;
 
 public class Telemetry {
 
-    private final EnumSet<TelemetryCapability> capabilities =
-            EnumSet.noneOf(TelemetryCapability.class);
+    private final EnumSet<TelemetryCapability> capabilities = EnumSet.noneOf(TelemetryCapability.class);
 
     public final ContinuousTimeSeries<Float> roll = new ContinuousTimeSeries<>(Interpolation.LINEAR);
     public final ContinuousTimeSeries<Float> pitch = new ContinuousTimeSeries<>(Interpolation.LINEAR);
@@ -42,7 +41,6 @@ public class Telemetry {
     public final DiscreteTimeSeries<String> flightMode = new DiscreteTimeSeries<>();
 
     private Home home;
-
 
     public void addCapability(TelemetryCapability capability) {
         capabilities.add(capability);

@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -16,7 +15,7 @@ public class MainWindow {
 
     private final Stage stage;
     private final Scene scene;
-    private final Navigator navigator;
+        private final UIOrchestrator orchestrator;
 
     public MainWindow(Stage stage) throws IOException {
 
@@ -36,8 +35,8 @@ public class MainWindow {
 
         scene = new Scene(
                 root,
-                bounds.getWidth() * 0.8,
-                bounds.getHeight() * 0.8
+                Math.max(1100, bounds.getWidth() * 0.8),
+                Math.max(700, bounds.getHeight() * 0.8)
         );
 
         scene.getStylesheets().add(
@@ -45,12 +44,21 @@ public class MainWindow {
                         getClass().getResource("/css/theme.css")
                 ).toExternalForm()
         );
+        scene.getStylesheets().add(
+                Objects.requireNonNull(
+                        getClass().getResource("/css/overlay.css")
+                ).toExternalForm()
+        );
 
-        navigator = new Navigator(controller);
+        orchestrator = new UIOrchestrator(controller);
+        controller.setOrchestrator(orchestrator);
 
-        navigator.showHome();
+        orchestrator.showHome();
 
         stage.setTitle("Ardupilot Overlay");
+        // since scene has max dim of 1100 and 700  set stage min dim to it
+        stage.setMinWidth(1100);
+        stage.setMinHeight(700);
         stage.setScene(scene);
     }
 
@@ -58,7 +66,7 @@ public class MainWindow {
         stage.show();
     }
 
-    public Navigator getNavigator() {
-        return navigator;
+    public UIOrchestrator getOrchestrator() {
+        return orchestrator;
     }
 }

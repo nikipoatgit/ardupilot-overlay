@@ -1,6 +1,6 @@
 package com.nikipo.ardupilotoverlay.ui;
 
-import com.nikipo.ardupilotoverlay.App;
+import com.nikipo.ardupilotoverlay.config.AppDirectories;
 import com.nikipo.ardupilotoverlay.logging.AppLogger;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -11,6 +11,15 @@ import java.io.IOException;
 public class MainApplication extends Application {
 
     private static final Logger logger = AppLogger.getLogger(MainApplication.class);
+
+    @Override
+    public void init() {
+        try {
+            new AppDirectories();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to initialize application directories", e);
+        }
+    }
 
     @Override
     public void start(Stage stage) {

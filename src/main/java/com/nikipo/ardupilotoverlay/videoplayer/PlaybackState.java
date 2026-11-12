@@ -1,4 +1,4 @@
-package com.nikipo.ardupilotoverlay.playback;
+package com.nikipo.ardupilotoverlay.videoplayer;
 
 public enum PlaybackState {
     STOPPED,

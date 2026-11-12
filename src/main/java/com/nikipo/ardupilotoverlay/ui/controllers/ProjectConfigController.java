@@ -1,15 +1,15 @@
 package com.nikipo.ardupilotoverlay.ui.controllers;
 
 import com.nikipo.ardupilotoverlay.logging.AppLogger;
-import com.nikipo.ardupilotoverlay.playback.PlaybackController;
 import com.nikipo.ardupilotoverlay.project.Project;
 import com.nikipo.ardupilotoverlay.project.ProjectManager;
 import com.nikipo.ardupilotoverlay.ui.Navigable;
-import com.nikipo.ardupilotoverlay.ui.Navigator;
+import com.nikipo.ardupilotoverlay.ui.UIOrchestrator;
+import com.nikipo.ardupilotoverlay.ui.VideoStage;
 import com.nikipo.ardupilotoverlay.ui.WizardStep;
-import com.nikipo.ardupilotoverlay.video.VideoEngine;
-import com.nikipo.ardupilotoverlay.video.VideoInfo;
-import javafx.embed.swing.SwingFXUtils;
+import com.nikipo.ardupilotoverlay.videoplayer.VideoEngine;
+import com.nikipo.ardupilotoverlay.videoplayer.VideoInfo;
+import com.nikipo.ardupilotoverlay.videoplayer.VideoPlayer;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,35 +18,42 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelBuffer;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.WritableImage;
 import javafx.scene.shape.Rectangle;
 import org.slf4j.Logger;
 
-import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 
 public class ProjectConfigController implements Navigable {
     private static final Logger logger = AppLogger.getLogger(ProjectConfigController.class);
 
     private final ColorAdjust colorAdjust = new ColorAdjust();
 
-    private Navigator navigator;
+    private UIOrchestrator orchestrator;
     private Project project;
     private VideoInfo videoInfo;
-    private PlaybackController playback;
+    private VideoPlayer playback;
     private VideoEngine videoEngine;
     private double durationSeconds;
+    private WritableImage videoImage;
+    private PixelBuffer<ByteBuffer> videoPixelBuffer;
+    private ByteBuffer videoBackingBuffer;
+    private boolean scrubSliderDragged;
 
     @FXML private SplitPane mainSplitPane;
     @FXML private SplitPane editorSplitPane;
 
     @FXML private StackPane previewStack;
-    @FXML private ImageView videoImageView;
+    @FXML private VideoStage videoStage;
+    private ImageView videoImageView;
     @FXML private Label previewMessageLabel;
 
     @FXML private VBox timelineBox;
@@ -88,8 +95,8 @@ public class ProjectConfigController implements Navigable {
     private void initialize() {
         project = ProjectManager.getInstance().getCurrentProject();
         videoInfo = project == null ? null : project.getVideoInfo();
-        videoEngine = project == null ? null : project.getVideoEngine();
-        durationSeconds = videoEngine == null ? 0.0 : videoEngine.getDuration();
+        videoEngine = ProjectManager.getInstance().getVideoEngine();
+        durationSeconds = videoInfo == null ? 0.0 : videoInfo.getDurationSeconds();
 
         initializeProject();
         initializeVideoPreview();
@@ -102,8 +109,8 @@ public class ProjectConfigController implements Navigable {
     }
 
     @Override
-    public void setNavigator(Navigator navigator) {
-        this.navigator = navigator;
+    public void setOrchestrator(UIOrchestrator orchestrator) {
+        this.orchestrator = orchestrator;
     }
 
     private void initializeProject() {
@@ -119,22 +126,35 @@ public class ProjectConfigController implements Navigable {
     }
 
     private void initializeVideoPreview() {
-        videoImageView.setPreserveRatio(true);
-        videoImageView.setSmooth(true);
-        videoImageView.fitWidthProperty().bind(previewStack.widthProperty());
-        videoImageView.fitHeightProperty().bind(previewStack.heightProperty());
+        videoImageView = videoStage.getImageView();
         videoImageView.setEffect(colorAdjust);
+        if (videoEngine != null && videoEngine.isOpen()) {
+            videoStage.setMediaAspect(videoEngine.getSourceAspect());
+        }
+        javafx.application.Platform.runLater(() -> {
+            if (mainSplitPane.getWidth() > 0) {
+                mainSplitPane.setDividerPositions(
+                        Math.max(0.0, Math.min(1.0, 1.0 - 380.0 / mainSplitPane.getWidth())));
+            }
+            if (editorSplitPane.getHeight() > 0) {
+                editorSplitPane.setDividerPositions(
+                        Math.max(0.0, Math.min(1.0, 1.0 - 160.0 / editorSplitPane.getHeight())));
+            }
+        });
     }
 
     private void initializePlayback() {
-        if (videoEngine == null || !videoEngine.isOpen()) {
-            playback = null;
+        if (project == null || project.getVideoFile() == null) {
             return;
         }
 
-        playback = new PlaybackController(
+        if (videoEngine == null || !videoEngine.isOpen()) {
+            return;
+        }
+
+        playback = new VideoPlayer(
                 videoEngine,
-                this::updateVideoFrame,
+                this::updateVideoPixels,
                 this::handlePlaybackError,
                 state -> updatePlayPauseButton()
         );
@@ -142,6 +162,34 @@ public class ProjectConfigController implements Navigable {
             playback.setMuted(videoInfo.isMuted());
         }
         playback.seek(0);
+        updateVideoAvailability();
+    }
+
+    private void updateVideoPixels(com.nikipo.ardupilotoverlay.videoplayer.VideoEngine.VideoFrame frame) {
+            if (videoPixelBuffer == null
+                    || videoImage == null
+                    || videoImage.getWidth() != frame.image().getWidth()
+                    || videoImage.getHeight() != frame.image().getHeight()) {
+                videoBackingBuffer = ByteBuffer.allocateDirect(
+                        frame.image().getWidth() * frame.image().getHeight() * 4);
+                videoPixelBuffer = new PixelBuffer<>(
+                        frame.image().getWidth(),
+                        frame.image().getHeight(),
+                        videoBackingBuffer,
+                        PixelFormat.getByteBgraPreInstance());
+                videoImage = new WritableImage(videoPixelBuffer);
+                videoStage.getImageView().setImage(videoImage);
+            }
+
+            videoPixelBuffer.updateBuffer(buffer -> {
+                videoBackingBuffer.clear();
+                videoBackingBuffer.put(frame.bgraPrePixels());
+                videoBackingBuffer.flip();
+                return null;
+            });
+            if (!scrubSlider.isValueChanging()) {
+                scrubSlider.setValue(clamp(frame.ptsSeconds(), 0, durationSeconds));
+            }
     }
 
     private void initializeTimeline() {
@@ -158,15 +206,18 @@ public class ProjectConfigController implements Navigable {
             }
         });
 
-        scrubSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
-            if (!isChanging) {
+        scrubSlider.setOnMousePressed(e -> scrubSliderDragged = false);
+        scrubSlider.setOnMouseClicked(this::seekToMousePosition);
+        scrubSlider.setOnMouseMoved(this::showScrubHover);
+        scrubSlider.setOnMouseDragged(event -> {
+            scrubSliderDragged = true;
+            showScrubHover(event);
+        });
+        scrubSlider.setOnMouseReleased(event -> {
+            if (scrubSliderDragged) {
                 seekToSliderValue();
             }
         });
-
-        scrubSlider.setOnMouseClicked(this::seekToMousePosition);
-        scrubSlider.setOnMouseMoved(this::showScrubHover);
-        scrubSlider.setOnMouseDragged(this::showScrubHover);
         scrubSlider.setOnMouseExited(e -> hoverTimeLabel.setVisible(false));
     }
 
@@ -201,7 +252,7 @@ public class ProjectConfigController implements Navigable {
 
         videoRotationSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
             double value = newValue.doubleValue();
-            videoImageView.setRotate(value);
+            videoStage.setRotationDegrees(value);
             if (videoInfo != null) {
                 videoInfo.setRotationDegrees(value);
             }
@@ -209,7 +260,7 @@ public class ProjectConfigController implements Navigable {
 
         videoOpacitySlider.valueProperty().addListener((obs, oldValue, newValue) -> {
             double value = newValue.doubleValue();
-            videoImageView.setOpacity(clamp(value / 100.0, 0, 1));
+            videoStage.getImageView().setOpacity(clamp(value / 100.0, 0, 1));
             if (videoInfo != null) {
                 videoInfo.setOpacityPercent(value);
             }
@@ -266,33 +317,19 @@ public class ProjectConfigController implements Navigable {
     }
 
     private void updateVideoAvailability() {
-        boolean hasVideo = videoEngine != null && videoEngine.isOpen();
+        boolean hasVideo = playback != null && videoEngine != null && videoEngine.isOpen();
 
         previewMessageLabel.setVisible(!hasVideo);
         previewMessageLabel.setManaged(!hasVideo);
-        videoImageView.setVisible(hasVideo);
+        videoStage.getImageView().setVisible(hasVideo);
 
         scrubSlider.setDisable(!hasVideo);
         playPauseButton.setDisable(!hasVideo);
         stepBackButton.setDisable(!hasVideo);
         stepForwardButton.setDisable(!hasVideo);
-        muteButton.setDisable(playback == null || !playback.hasAudio());
+        muteButton.setDisable(!hasVideo || !playback.hasAudio());
         updateTransportAvailability();
         updateMuteButton();
-    }
-
-    private void updateVideoFrame(BufferedImage frame) {
-        if (frame == null) {
-            return;
-        }
-
-        Image image = SwingFXUtils.toFXImage(frame, null);
-        videoImageView.setImage(image);
-
-        if (!scrubSlider.isValueChanging()) {
-            double currentSeconds = clamp(videoEngine.getCurrentTime(), 0, durationSeconds);
-            scrubSlider.setValue(currentSeconds);
-        }
     }
 
     private void seekToSliderValue() {
@@ -306,7 +343,8 @@ public class ProjectConfigController implements Navigable {
     }
 
     private void seekToMousePosition(MouseEvent event) {
-        if (playback == null || durationSeconds <= 0 || scrubSlider.getWidth() <= 0) {
+        if (scrubSliderDragged
+                || playback == null || durationSeconds <= 0 || scrubSlider.getWidth() <= 0) {
             return;
         }
 
@@ -317,6 +355,19 @@ public class ProjectConfigController implements Navigable {
         event.consume();
     }
 
+    private void toggleMute() {
+        if (playback == null) {
+            return;
+        }
+
+        boolean muted = !playback.isMuted();
+        playback.setMuted(muted);
+        if (videoInfo != null) {
+            videoInfo.setMuted(muted);
+        }
+        updateMuteButton();
+    }
+
     private void stepFrames(int frames) {
         if (playback == null) {
             return;
@@ -324,18 +375,6 @@ public class ProjectConfigController implements Navigable {
 
         playback.stepFrames(frames);
         updatePlayPauseButton();
-    }
-
-    private void toggleMute() {
-        if (playback == null || !playback.hasAudio()) {
-            return;
-        }
-
-        playback.setMuted(!playback.isMuted());
-        if (videoInfo != null) {
-            videoInfo.setMuted(playback.isMuted());
-        }
-        updateMuteButton();
     }
 
     private void setStartAtCurrentTime() {
@@ -390,7 +429,7 @@ public class ProjectConfigController implements Navigable {
     }
 
     private boolean hasOpenVideo() {
-        return videoEngine != null && videoEngine.isOpen();
+        return playback != null && videoEngine != null && videoEngine.isOpen();
     }
 
 
@@ -420,9 +459,11 @@ public class ProjectConfigController implements Navigable {
                 videoInfo.getTemperature(),
                 videoInfo.getTint());
 
-        playback.stop();
+        if (playback != null) {
+            playback.stop();
+        }
 
-        navigator.showTelemetrySelector();
+        orchestrator.showTelemetrySelector();
     }
 
     private void showScrubHover(MouseEvent event) {
@@ -460,6 +501,7 @@ public class ProjectConfigController implements Navigable {
         }
 
         updatePlayPauseButton();
+        updateVideoAvailability();
     }
 
     private static double clamp(double value, double min, double max) {

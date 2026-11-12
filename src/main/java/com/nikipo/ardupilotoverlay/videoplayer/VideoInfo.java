@@ -1,4 +1,4 @@
-package com.nikipo.ardupilotoverlay.video;
+package com.nikipo.ardupilotoverlay.videoplayer;
 
 public class VideoInfo {
     private final double durationSeconds;

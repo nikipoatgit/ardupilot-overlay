@@ -5,7 +5,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
+<?import com.nikipo.ardupilotoverlay.ui.VideoStage?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Rectangle?>
 
@@ -27,9 +27,9 @@
                     <items>
 
                         <!-- ===== VIDEO PREVIEW AREA ===== -->
-                        <StackPane fx:id="previewStack" style="-fx-background-color: #1c1c1c;">
+                        <StackPane fx:id="previewStack" style="-fx-background-color: black;">
                             <children>
-                                <ImageView fx:id="videoImageView" preserveRatio="true" pickOnBounds="true" />
+                                <VideoStage fx:id="videoStage" />
                                 <Label fx:id="previewMessageLabel"
                                        text="No video selected"
                                        style="-fx-text-fill: #d6d6d6; -fx-font-size: 16px;" />
@@ -37,7 +37,9 @@
                         </StackPane>
 
                         <!-- ===== TIMELINE AREA ===== -->
-                        <VBox fx:id="timelineBox" spacing="4" style="-fx-background-color: white;">
+                        <VBox fx:id="timelineBox" minHeight="140" prefHeight="160" maxHeight="160"
+                              SplitPane.resizableWithParent="false"
+                              spacing="4" style="-fx-background-color: white;">
                             <padding>
                                 <Insets top="8" right="12" bottom="8" left="12" />
                             </padding>
@@ -108,7 +110,8 @@
                     </items>
                 </SplitPane>
 
-                <ScrollPane fx:id="propertiesScrollPane" fitToWidth="true">
+                <ScrollPane fx:id="propertiesScrollPane" minWidth="320" prefWidth="380" maxWidth="520"
+                            SplitPane.resizableWithParent="false" fitToWidth="true">
                     <content>
                         <VBox fx:id="propertiesBox" spacing="16">
                             <padding>

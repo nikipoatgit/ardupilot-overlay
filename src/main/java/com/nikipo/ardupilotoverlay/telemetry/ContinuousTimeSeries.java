@@ -4,6 +4,7 @@ import com.nikipo.ardupilotoverlay.telemetry.dataType.Interpolation;
 import com.nikipo.ardupilotoverlay.telemetry.dataType.TimedValue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ContinuousTimeSeries<T extends Number> {
@@ -16,6 +17,10 @@ public class ContinuousTimeSeries<T extends Number> {
 
     public ContinuousTimeSeries(Interpolation interpolation) {
         this.interpolation = interpolation;
+    }
+
+    public List<TimedValue<T>> getBuffer() {
+        return Collections.unmodifiableList(samples);
     }
 
     public void add(long timeUs, T value) {
